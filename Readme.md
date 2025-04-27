@@ -21,7 +21,7 @@ This tool is a **custom exception decoder** for **ESP32** devices, designed to d
 
 1. Clone this repository to your local machine:
    ```bash
-   git clone https://github.com/your-username/ESP32-ExceptionDecoder.git
+   git clone https://github.com/umartechboy/ESP32_ExceptionDecoder.git
    ```
 
 2. Navigate to the directory where the repository is cloned:
@@ -107,6 +107,10 @@ This will:
 ---
 
 ## Example Output
+
+![Screenshot](https://raw.githubusercontent.com/umartechboy/ESP32_ExceptionDecoder/refs/heads/main/Screenshot.png)
+
+![Screenshot](https://raw.githubusercontent.com/umartechboy/ESP32_ExceptionDecoder/refs/heads/main/Screenshot%202.png)
 
 When decoding, the tool outputs information such as the **exception type**, **register dumps**, and **backtrace** with **decoded file names and line numbers**.
 
