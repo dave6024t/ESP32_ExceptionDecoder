@@ -20,14 +20,20 @@ namespace ESP32_ExceptionDecoder
         // This functions returns the sha of the elf file
         static string shaOfElf(string elf)
         {
-            // compute the actual sha of a file
-            var sha = new System.Security.Cryptography.SHA256Managed();
-            using (var stream = File.OpenRead(elf))
+            try
             {
-                var hash = sha.ComputeHash(stream);
-                return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
+                // compute the actual sha of a file
+                var sha = new System.Security.Cryptography.SHA256Managed();
+                using (var stream = File.OpenRead(elf))
+                {
+                    var hash = sha.ComputeHash(stream);
+                    return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
+                }
             }
-
+            catch
+            {
+                return "";
+            }
         }
         static void Write(char chr)
         {
@@ -54,7 +60,7 @@ namespace ESP32_ExceptionDecoder
                 return;
             var fName = message.Substring(0, message.LastIndexOf(":"));
             var dir = Path.GetDirectoryName(fName);
-            dir = dir.TrimStart('?', '\r', '\n', ':', '0');
+            dir = dir?.TrimStart('?', '\r', '\n', ':', '0');
             
             var file = Path.GetFileName(fName);
             var line = message.Substring(message.LastIndexOf(":") + 1);
@@ -161,6 +167,11 @@ namespace ESP32_ExceptionDecoder
 
             // Summarize on console what args are we going to use:
             sha = shaOfElf(string.Format(elf, build));
+            if (sha == "")
+            {
+                WriteErrorLine("Could not find the ELF file. Please check the path.");
+                return;
+            }
             Console.WriteLine("Using Elf: {0}", string.Format(elf, build));
             Console.WriteLine("SHA of elf: {0}", sha);
             Console.WriteLine("xtensa tools: {0}", tools);
