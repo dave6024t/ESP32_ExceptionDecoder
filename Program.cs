@@ -15,7 +15,7 @@ namespace ESP32_ExceptionDecoder
         static string addr2Line = "";
         static string traceDecode(string trace)
         {
-            var p = new Process() { StartInfo = new ProcessStartInfo(addr2Line, "-e " + string.Format(elf, build) + " -f -p ESP32  " + trace ) { UseShellExecute = false, RedirectStandardOutput = true, /* RedirectStandardInput = false*/ } };
+            var p = new Process() { StartInfo = new ProcessStartInfo(addr2Line, "-e " + string.Format(elf, build) + " -p ESP32  " + trace) { UseShellExecute = false, RedirectStandardOutput = true } };
             p.Start();
             return p.StandardOutput.ReadToEnd();
         }
@@ -298,14 +298,15 @@ namespace ESP32_ExceptionDecoder
             if (usePort)
                 while (true)
                 {
-                    var inStream = Console.OpenStandardInput();
-                    StreamReader sr = new(inStream);
-                    var rLine = sr.ReadLine();
-                    sp.WriteLine(rLine);
-                    rLine = sr.ReadLine();
+                    // send individual keyboard characters to the serial port, not echoed to local screen
+                    if (Console.KeyAvailable)
+                    {
+                        var key = Console.ReadKey(true);
+                        sp.Write(key.KeyChar.ToString());
+                    }
                 }
             else
-                Console.WriteLine("Docoding ended.");
+                Console.WriteLine("Decoding ended.");
         }
 
     }
