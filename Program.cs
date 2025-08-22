@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.IO.Ports;
 using System.Reflection;
+using System.Security.Cryptography;
 
 namespace ESP32_ExceptionDecoder
 {
@@ -10,24 +11,27 @@ namespace ESP32_ExceptionDecoder
         static string build = "";
         static string elf = ".pio/build/{0}/firmware.elf";
         static string tools = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".platformio/packages/toolchain-xtensa-esp32");
+        static string addr2linePath = "";
+        static string addr2Line = "";
         static string traceDecode(string trace)
         {
-            var addr2Line = Path.Combine(tools, "bin", "xtensa-esp32-elf-addr2line");
-            var p = new Process() { StartInfo = new ProcessStartInfo(addr2Line, "-e " + string.Format(elf, build) + " -p ESP32  " + trace) { UseShellExecute = false, RedirectStandardOutput = true } };
+            var p = new Process() { StartInfo = new ProcessStartInfo(addr2Line, "-e " + string.Format(elf, build) + " -f -p ESP32  " + trace ) { UseShellExecute = false, RedirectStandardOutput = true, /* RedirectStandardInput = false*/ } };
             p.Start();
             return p.StandardOutput.ReadToEnd();
         }
         // This functions returns the sha of the elf file
         static string shaOfElf(string elf)
         {
-            try
+            try  
             {
                 // compute the actual sha of a file
-                var sha = new System.Security.Cryptography.SHA256Managed();
-                using (var stream = File.OpenRead(elf))
+                using (SHA256 sha = SHA256.Create())
                 {
-                    var hash = sha.ComputeHash(stream);
-                    return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
+                    using (var stream = File.OpenRead(elf))
+                    {
+                        var hash = sha.ComputeHash(stream);
+                        return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
+                    }
                 }
             }
             catch
@@ -45,7 +49,7 @@ namespace ESP32_ExceptionDecoder
             Console.ForegroundColor = ConsoleColor.White;
             Console.Write(message, args);
 
-            
+
             Console.BackgroundColor = ConsoleColor.Black;
             Console.ForegroundColor = ConsoleColor.White;
         }
@@ -61,7 +65,7 @@ namespace ESP32_ExceptionDecoder
             var fName = message.Substring(0, message.LastIndexOf(":"));
             var dir = Path.GetDirectoryName(fName);
             dir = dir?.TrimStart('?', '\r', '\n', ':', '0');
-            
+
             var file = Path.GetFileName(fName);
             var line = message.Substring(message.LastIndexOf(":") + 1);
             Console.ForegroundColor = ConsoleColor.DarkYellow;
@@ -110,22 +114,23 @@ namespace ESP32_ExceptionDecoder
             var comPort = SerialPort.GetPortNames().Last();
             int baud = 250000;
             var allTrace = "";
-            for (int i =0;i < (args.Length / 2 ) * 2; i += 2)
+            for (int i = 0; i < args.Length; i += 2)
             {
                 if (args[i].StartsWith("-b") || args[i].StartsWith("--build"))
                 {
                     build = args[i + 1];
-                    break;
                 }
                 else if (args[i].StartsWith("-e") || args[i].StartsWith("--elf"))
                 {
                     elf = args[i + 1];
-                    break;
                 }
                 else if (args[i].StartsWith("-t") || args[i].StartsWith("--tools"))
                 {
                     tools = args[i + 1];
-                    break;
+                }
+                else if (args[i].StartsWith("-a") || args[i].StartsWith("--addr2line"))
+                {
+                    addr2linePath = args[i + 1];
                 }
                 else if (args[i].StartsWith("-c") || args[i].StartsWith("--com"))
                 {
@@ -140,7 +145,6 @@ namespace ESP32_ExceptionDecoder
                     {
                         comPort = args[i + 1];
                     }
-                    break;
                 }
                 else if (args[i].StartsWith("-s") || args[i].StartsWith("--speed"))
                 {
@@ -152,7 +156,6 @@ namespace ESP32_ExceptionDecoder
                     {
                         baud = 115200;
                     }
-                    break;
                 }
                 else if (args[i].StartsWith("-f") || args[i].StartsWith("--file"))
                 {
@@ -164,6 +167,10 @@ namespace ESP32_ExceptionDecoder
             if (build == "" && Directory.Exists(".pio/build"))
                 build = Path.GetFileName(Directory.GetDirectories(".pio/build").ToList().Find(d => Directory.GetLastWriteTime(d) == Directory.GetDirectories(".pio/build").ToList().Max(d => Directory.GetLastWriteTime(d))));
 
+            if (addr2linePath == "")
+                addr2Line = Path.Combine(tools, "bin", "xtensa-esp32-elf-addr2line");
+            else
+                addr2Line = addr2linePath;
 
             // Summarize on console what args are we going to use:
             sha = shaOfElf(string.Format(elf, build));
@@ -175,6 +182,7 @@ namespace ESP32_ExceptionDecoder
             Console.WriteLine("Using Elf: {0}", string.Format(elf, build));
             Console.WriteLine("SHA of elf: {0}", sha);
             Console.WriteLine("xtensa tools: {0}", tools);
+            Console.WriteLine("add2line util: {0}", addr2Line);
             if (usePort)
                 Console.WriteLine("COM Port: {0} @{1}", comPort, baud);
             else
@@ -228,7 +236,7 @@ namespace ESP32_ExceptionDecoder
                     Console.WriteLine();
                     WriteErrorLine("Decoded Backtrace: ");
                     var traces = line.Split(' ').ToList().Skip(1);
-                    foreach(var trace in traces)
+                    foreach (var trace in traces)
                     {
                         var decode = traceDecode(trace).Trim();
                         WriteTraceLine(decode);
@@ -245,26 +253,26 @@ namespace ESP32_ExceptionDecoder
                 }
             }
             sp.DataReceived += (sender, e) =>
-        {
-            while (sp.BytesToRead > 0)
             {
-                var bytes = new byte[sp.BytesToRead];
-                sp.Read(bytes, 0, bytes.Length);
-                foreach (var bRead in bytes)
+                while (sp.BytesToRead > 0)
                 {
-                    if (bRead == '\n')
+                    var bytes = new byte[sp.BytesToRead];
+                    sp.Read(bytes, 0, bytes.Length);
+                    foreach (var bRead in bytes)
                     {
-                        var l = string.Join("", line);
-                        line.Clear();
-                        newLine(l);
+                        if (bRead == '\n')
+                        {
+                            var l = string.Join("", line);
+                            line.Clear();
+                            newLine(l);
+                        }
+                        else
+                            line.Add((char)bRead);
+                        if (!stopPrinting)
+                            Write((char)bRead);
                     }
-                    else
-                        line.Add((char)bRead);
-                    if (!stopPrinting)
-                        Write((char)bRead);
                 }
-            }
-        };
+            };
             if (usePort)
             {
                 try

@@ -47,7 +47,7 @@ This will build the project and prepare it for execution.
 
 After building the project, copy the generated **`ESP32_ExceptionDecoder`** binary to your PlatformIO project directory.
 
-For example, you can create a directory named **`eDecoder`** in your PlatformIO project folder and copy the binary there. You should copy the **DLL** and **EXE** (Windows) files from your build directory to **`eDecoder`**.
+For example, you can create a directory named **`eDecoder`** in your PlatformIO project folder and copy the binary there. For Windows, copy all files from your build directory to **`eDecoder`**.
 
 ### **Step 2: Execute the Tool**
 
@@ -79,6 +79,7 @@ You can also pass custom arguments to the tool if needed:
 - **`--build` or `-b`**: Specify the build directory or target build.
 - **`--elf` or `-e`**: Specify the **ELF file**.
 - **`--tools` or `-t`**: Specify the path to the **ESP32 toolchain** (default is detected automatically).
+- **`--addr2line` or `-a`**: Specify the full path & name of your addr2line utility** 
 - **`--com` or `-c`**: Specify the **COM port** for serial communication.
 - **`--speed` or `-s`**: Specify the **baud rate** for serial communication (default is `250000`).
 - **`--file` or `-f`**: Use a **file** as input for backtrace logs instead of serial.
