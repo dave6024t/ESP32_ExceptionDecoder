@@ -14,6 +14,7 @@ This tool is a **custom exception decoder** for **ESP32** devices, designed to d
 - **File support**: Reads exception backtraces from an input file.
 - **Boot loop prevention**: Detects if the system is in a **boot loop** and halts further decoding.
 - **Exception decoding**: Uses the **`addr2line`** utility from the **ESP32 toolchain** to decode exception data and map memory addresses to the corresponding source code.
+- **Serial data to ESP32**: Transparently passes character-by-character keyboard input to the ESP32 via the serial port.  
 
 ## Installation
 
@@ -79,7 +80,7 @@ You can also pass custom arguments to the tool if needed:
 - **`--build` or `-b`**: Specify the build directory or target build.
 - **`--elf` or `-e`**: Specify the **ELF file**.
 - **`--tools` or `-t`**: Specify the path to the **ESP32 toolchain** (default is detected automatically).
-- **`--addr2line` or `-a`**: Specify the full path & name of your **addr2line utility** 
+- **`--addr2line` or `-a`**: Specify the full path & name of your **addr2line utility** (used when the utility is not named 'xtensa-esp32-elf-addr2line')
 - **`--com` or `-c`**: Specify the **COM port** for serial communication.
 - **`--speed` or `-s`**: Specify the **baud rate** for serial communication (default is `250000`).
 - **`--file` or `-f`**: Use a **file** as input for backtrace logs instead of serial.
