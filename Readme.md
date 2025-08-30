@@ -80,7 +80,7 @@ You can also pass custom arguments to the tool if needed:
 - **`--build` or `-b`**: Specify the build directory or target build.
 - **`--elf` or `-e`**: Specify the **ELF file**.
 - **`--tools` or `-t`**: Specify the path to the **ESP32 toolchain** (default is detected automatically).
-- **`--addr2line` or `-a`**: Specify the full path & name of your **addr2line utility** (used when the utility is not named 'xtensa-esp32-elf-addr2line')
+- **`--addr2line` or `-a`**: Specify the full path & name of your **addr2line utility** (used when the utility is not named 'xtensa-esp32-elf-addr2line.exe')
 - **`--com` or `-c`**: Specify the **COM port** for serial communication.
 - **`--speed` or `-s`**: Specify the **baud rate** for serial communication (default is `250000`).
 - **`--file` or `-f`**: Use a **file** as input for backtrace logs instead of serial.

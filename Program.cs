@@ -113,7 +113,8 @@ namespace ESP32_ExceptionDecoder
             bool usePort = true;
             var comPort = SerialPort.GetPortNames().Last();
             int baud = 250000;
-            var allTrace = "";
+            string traceFilename = "";
+            string allTrace = "";
             for (int i = 0; i < args.Length; i += 2)
             {
                 if (args[i].StartsWith("-b") || args[i].StartsWith("--build"))
@@ -160,7 +161,7 @@ namespace ESP32_ExceptionDecoder
                 else if (args[i].StartsWith("-f") || args[i].StartsWith("--file"))
                 {
                     usePort = false;
-                    allTrace = args[i + 1];
+                    traceFilename = args[i + 1];
                 }
             }
 
@@ -186,15 +187,12 @@ namespace ESP32_ExceptionDecoder
             if (usePort)
                 Console.WriteLine("COM Port: {0} @{1}", comPort, baud);
             else
-                WriteErrorLine("Decoding Error: {0}", allTrace);
-
-            if (args.Length % 2 == 1)
             {
-                usePort = false;
-                if (File.Exists(args.Last()))
-                    allTrace = File.ReadAllText(allTrace);
+                Console.WriteLine("trace file: {0}", traceFilename);
+                if (File.Exists(traceFilename))
+                    allTrace = File.ReadAllText(traceFilename);
                 else
-                    allTrace = args.Last();
+                    WriteErrorLine("Cannot open file '{0}'", traceFilename);
             }
             Console.WriteLine("ESP32 Exception Decoder");
             var sp = new SerialPort(comPort, baud);
@@ -289,10 +287,11 @@ namespace ESP32_ExceptionDecoder
             }
             else
             {
-                Console.WriteLine("Using backtrace inf: {0}", allTrace);
-                foreach (var l in allTrace.Split('\r', 'n'))
+                Console.WriteLine("Using backtrace inf:\n{0}", allTrace);
+                foreach (var l in allTrace.Split('\r', '\n'))
                 {
-                    newLine(l);
+                    if (l.Length > 0)
+                        newLine(l);
                 }
             }
             if (usePort)
