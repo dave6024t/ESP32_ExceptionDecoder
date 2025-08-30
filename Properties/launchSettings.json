@@ -1,9 +1,7 @@
 {
   "profiles": {
     "ESP32_ExceptionDecoder": {
-      "commandName": "Project",
-      "commandLineArgs": "-a \"C:\\Users\\davet\\.platformio\\packages\\toolchain-xtensa-esp32s3\\bin\\xtensa-esp32s3-elf-addr2line.exe\" -f \"crash2.txt\"",
-      "workingDirectory": "D:\\Embedded\\PIO\\Traverser\\Controller"
+      "commandName": "Project"
     }
   }
 }
